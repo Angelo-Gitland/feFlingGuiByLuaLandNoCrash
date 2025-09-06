@@ -1,0 +1,198 @@
+-- FE FLING GUI  By Lua Land the sigma
+
+local player = game.Players.LocalPlayer
+local uis = game:GetService("UserInputService")
+
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "FeFlingGui"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 300, 0, 200)
+frame.Position = UDim2.new(0.35, 0, 0.35, 0)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.Active = true
+frame.Draggable = true
+frame.BorderSizePixel = 0
+frame.Visible = true
+
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, -40, 0, 40)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Fe Fling Gui By Lua Land"
+title.Font = Enum.Font.GothamBlack
+title.TextSize = 20
+title.TextColor3 = Color3.fromRGB(255, 0, 0)
+
+local closeBtn = Instance.new("TextButton", frame)
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 18
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+
+closeBtn.MouseButton1Click:Connect(function()
+    frame.Visible = false
+end)
+
+local border = Instance.new("UIStroke", frame)
+border.Thickness = 3
+task.spawn(function()
+    while task.wait() do
+        for i = 0, 1, 0.01 do
+            if frame.Visible then
+                border.Color = Color3.fromHSV(i, 1, 1)
+            end
+            task.wait(0.05)
+        end
+    end
+end)
+
+local fire = Instance.new("UIGradient", frame)
+fire.Rotation = 90
+task.spawn(function()
+    while task.wait() do
+        if frame.Visible then
+            fire.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0, Color3.fromHSV(math.random(),1,1)),
+                ColorSequenceKeypoint.new(1, Color3.fromHSV(math.random(),1,1))
+            }
+        end
+        task.wait(0.2)
+    end
+end)
+
+local textbox = Instance.new("TextBox", frame)
+textbox.Size = UDim2.new(1, -20, 0, 40)
+textbox.Position = UDim2.new(0, 10, 0, 60)
+textbox.PlaceholderText = "Enter target name (or 'All')"
+textbox.Font = Enum.Font.Gotham
+textbox.TextSize = 16
+textbox.TextColor3 = Color3.new(1,1,1)
+textbox.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Instance.new("UICorner", textbox).CornerRadius = UDim.new(0, 6)
+
+local flingBtn = Instance.new("TextButton", frame)
+flingBtn.Size = UDim2.new(1, -20, 0, 40)
+flingBtn.Position = UDim2.new(0, 10, 0, 120)
+flingBtn.Text = "Fling"
+flingBtn.Font = Enum.Font.GothamBold
+flingBtn.TextSize = 18
+flingBtn.TextColor3 = Color3.fromRGB(255,255,255)
+flingBtn.BackgroundColor3 = Color3.fromRGB(150,0,0)
+Instance.new("UICorner", flingBtn).CornerRadius = UDim.new(0, 6)
+
+-------------------------------------------------
+--// Fling Script Core (Fixed)
+-------------------------------------------------
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local AllBool = false
+
+local function Message(_Title, _Text, Time)
+    game:GetService("StarterGui"):SetCore("SendNotification", {Title = _Title, Text = _Text, Duration = Time})
+end
+
+local function GetPlayer(Name)
+    Name = Name:lower()
+    if Name == "all" then
+        AllBool = true
+        return
+    else
+        for _,x in next, Players:GetPlayers() do
+            if x ~= Player then
+                if x.Name:lower():match("^"..Name) then
+                    return x;
+                elseif x.DisplayName:lower():match("^"..Name) then
+                    return x;
+                end
+            end
+        end
+    end
+end
+
+local function SkidFling(TargetPlayer)
+    local Character = Player.Character
+    local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+    local RootPart = Humanoid and Humanoid.RootPart
+    if not (Character and Humanoid and RootPart) then return end
+
+    local TCharacter = TargetPlayer.Character
+    local THumanoid = TCharacter and TCharacter:FindFirstChildOfClass("Humanoid")
+    local TRootPart = THumanoid and THumanoid.RootPart
+    if not (TCharacter and THumanoid and TRootPart) then return end
+
+    local OldCFrame = RootPart.CFrame
+
+    local function FPos(BasePart, Pos, Ang)
+        RootPart.CFrame = CFrame.new(BasePart.Position) * Pos * Ang
+        Character:SetPrimaryPartCFrame(CFrame.new(BasePart.Position) * Pos * Ang)
+        RootPart.Velocity = Vector3.new(9e7, 9e7, 9e7)
+        RootPart.RotVelocity = Vector3.new(9e8, 9e8, 9e8)
+    end
+
+    local function SFBasePart(BasePart)
+        local Angle = 0
+        local Time = tick()
+        repeat
+            if RootPart and THumanoid then
+                Angle = Angle + 100
+                FPos(BasePart, CFrame.new(0, 1.5, 0), CFrame.Angles(math.rad(Angle),0 ,0))
+                task.wait()
+                FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(math.rad(Angle),0 ,0))
+                task.wait()
+            else break end
+        until tick() > Time + 2
+    end
+
+    local BV = Instance.new("BodyVelocity", RootPart)
+    BV.Velocity = Vector3.new(9e8, 9e8, 9e8)
+    BV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+
+    SFBasePart(TRootPart)
+
+    BV:Destroy()
+    task.wait(0.2)
+
+    RootPart.CFrame = OldCFrame * CFrame.new(0, 2, 0)
+    Character:SetPrimaryPartCFrame(OldCFrame * CFrame.new(0, 2, 0))
+    Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+
+    for _,bp in pairs(Character:GetChildren()) do
+        if bp:IsA("BasePart") then
+            bp.Velocity = Vector3.new()
+            bp.RotVelocity = Vector3.new()
+        end
+    end
+
+    Message("Fling Completed!", "Target: "..TargetPlayer.Name, 5)
+end
+
+-------------------------------------------------
+-- Button To Function lol
+-------------------------------------------------
+flingBtn.MouseButton1Click:Connect(function()
+    local targetName = textbox.Text
+    if targetName == "" then
+        Message("Error", "Enter a target!", 5)
+        return
+    end
+    local target = GetPlayer(targetName)
+    if AllBool then
+        for _,plr in pairs(Players:GetPlayers()) do
+            if plr ~= Player then
+                SkidFling(plr)
+            end
+        end
+    elseif target and target ~= Player then
+        SkidFling(target)
+    else
+        Message("Error", "Target not found!", 5)
+    end
+end)
